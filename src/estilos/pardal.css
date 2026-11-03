@@ -7,8 +7,8 @@
 .peq { font-size: 12px; }
 table.tab td.mono { white-space: nowrap; }
 .centro { text-align: center !important; }
-.app a { color: var(--link); text-decoration: none; font-weight: 600; }
-.app a:hover { text-decoration: underline; }
+.app .conteudo a { color: var(--link); text-decoration: none; font-weight: 600; }
+.app .conteudo a:hover { text-decoration: underline; }
 .tit-pagina p { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .busca-tipo { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: var(--destaque-2); background: var(--gelo); border-radius: 5px; padding: 1px 6px; margin-right: 8px; }
 .lat-item svg.i + .nm + svg.i { width: 14px; height: 14px; opacity: .55; }
