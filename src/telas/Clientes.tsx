@@ -1,8 +1,9 @@
-// Clientes — cadastro novo (na planilha o cliente era digitado de novo em cada orçamento, O.P, RNC, CQ e nota).
+// Clientes — cadastro único usado por orçamento, O.P, RNC, certificado e faturamento.
 import { useState } from 'react';
 import type { Cliente } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { BotaoIcone, BuscaLista, Campo, OrigemPlanilha, Registro, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { BotaoIcone, BuscaLista, Campo, Registro, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { progressoOP } from '../regras/producao';
 import { mesDe, somaMes } from '../regras/periodo';
@@ -25,7 +26,11 @@ export function Clientes() {
   const sel = abrir === 'novo' ? null : base.clientes.find((c) => c.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Clientes" sub={<OrigemPlanilha aba="— (novo: antes digitado em cada documento)" />}>
+      <TituloPagina titulo="Clientes" sub="Cadastro de clientes, pedidos em aberto e faturamento">
+        <BotoesRelatorio titulo="Clientes" filtro={t ? `busca "${t}"` : 'Todos os clientes'}
+          colunas={[{ t: 'Cliente' }, { t: 'CNPJ' }, { t: 'Segmento' }, { t: 'Cidade' }, { t: 'Contato' }, { t: 'Telefone' }, { t: 'O.P em aberto', dir: true }, { t: 'Faturado (6 meses)', dir: true }]}
+          linhas={vis.map(({ c, abertas, fat }) => [c.nome, c.cnpj, c.segmento, c.cidade, c.contato, c.telefone, String(abertas), moeda(fat)])}
+          total={['Total', `${vis.length} clientes`, '', '', '', '', String(soma(vis, (x) => x.abertas)), moeda(soma(vis, (x) => x.fat))]} />
         <BotaoIcone icone="mais" titulo={edita ? 'Novo cliente' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="barra"><BuscaLista valor={t} setValor={setT} dica="Buscar por nome, CNPJ, cidade ou segmento" /></div>
@@ -50,7 +55,7 @@ function RegistroCliente({ cliente, fechar }: { cliente?: Cliente; fechar: () =>
   const { base, acoes } = useDados();
   const edita = useEdita('clientes');
   const novo = !cliente;
-  const inicial: Cliente = cliente ?? { id: acoes.novoId('c'), nome: '', cnpj: '', contato: '', telefone: '', cidade: 'Rondonópolis-MT', segmento: '' };
+  const inicial: Cliente = cliente ?? { id: acoes.novoId('c'), nome: '', cnpj: '', contato: '', telefone: '', cidade: '', segmento: '' };
   const { r, mudar, editando, setEditando, erro, setErro, descartar } = useRascunho(inicial, novo);
   const ed = !editando;
   const salvar = () => {

@@ -1,9 +1,9 @@
-// Ordem de Produção (O.P) — aba "OP (n)" da planilha:
+// Ordem de Produção (O.P):
 //   peso total  = peso da peça × quantidade (líquido e bruto)
 //   refugo      = peças refugadas × peso da peça;  % refugado = refugado ÷ total
 // Novo no sistema: as peças fundidas vêm das Fichas do Forno (apontamento de peças por O.P),
 // então a O.P mostra sozinha quanto já foi fundido, quanto falta e se está atrasada.
-import type { BaseFenix, OrdemProducao } from '../tipos/modelos';
+import type { BasePardal, OrdemProducao } from '../tipos/modelos';
 import { arred, soma } from '../util/formato';
 
 export type StatusOP = 'aberta' | 'em_producao' | 'concluida' | 'atrasada';
@@ -27,10 +27,10 @@ export function pesosOP(op: OrdemProducao) {
 }
 
 /** Peças já fundidas para a O.P (soma dos apontamentos nas fichas do forno). */
-export const fundidasOP = (opId: string, base: Pick<BaseFenix, 'fichas'>) =>
+export const fundidasOP = (opId: string, base: Pick<BasePardal, 'fichas'>) =>
   soma(base.fichas, (f) => soma(f.pecas.filter((p) => p.opId === opId), (p) => p.pecas));
 
-export function progressoOP(op: OrdemProducao, base: Pick<BaseFenix, 'fichas'>, hoje: string) {
+export function progressoOP(op: OrdemProducao, base: Pick<BasePardal, 'fichas'>, hoje: string) {
   const fundidas = fundidasOP(op.id, base);
   const { refugadas } = pesosOP(op);
   const boas = Math.max(0, fundidas - refugadas);
@@ -40,5 +40,5 @@ export function progressoOP(op: OrdemProducao, base: Pick<BaseFenix, 'fichas'>, 
 }
 
 /** O.P que podem receber peças numa corrida: não concluídas, da mesma liga. */
-export const opsParaCorrida = (base: Pick<BaseFenix, 'ops'>, ligaId: string) =>
+export const opsParaCorrida = (base: Pick<BasePardal, 'ops'>, ligaId: string) =>
   base.ops.filter((o) => !o.dataEfetiva && o.ligaId === ligaId);

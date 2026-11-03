@@ -1,7 +1,7 @@
 // Estrutura da tela (mesmo padrão do Analiza / IO Clinic): menu lateral por grupo, topo com busca e usuário, conteúdo, rodapé.
 // O menu mostra só as páginas que o perfil libera.
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Icone } from './Icone';
 import { Logo, Marca } from './Marca';
 import { BuscaGeral } from './BuscaGeral';
@@ -17,10 +17,12 @@ export function Shell() {
   const loc = useLocation();
   const atual = PAGINAS.find((p) => p.rota === '/' + loc.pathname.split('/').filter(Boolean)[0]);
   const trocarTema = () => { setClaro(!claro); local.gravar('tema-claro', !claro); };
+  const [menu, setMenu] = useState(false); // celular: menu lateral abre por cima
+  useEffect(() => setMenu(false), [loc.pathname]);
   return (
-    <div className={'app' + (claro ? ' tema-claro' : '')}>
+    <div className={'app' + (claro ? ' tema-claro' : '') + (menu ? ' menu-aberto' : '')}>
       <aside className="lateral">
-        <div className="lat-topo"><Marca /></div>
+        <div className="lat-topo"><Marca /><button type="button" className="icone-btn lat-fechar" onClick={() => setMenu(false)} title="Fechar menu" aria-label="Fechar menu"><Icone n="x" /></button></div>
         <nav className="lat-nav" aria-label="Menu principal">
           {GRUPOS.map((g) => {
             const itens = PAGINAS.filter((p) => p.grupo === g && p.perfis.includes(perfil));
@@ -37,10 +39,11 @@ export function Shell() {
             );
           })}
         </nav>
-        <div className="lat-rodape">v0.1 · mock de apresentação</div>
+        <div className="lat-rodape">v0.1 · IO Tecnologia</div>
       </aside>
       <header className="topo">
-        <div className="topo-marca"><Logo tam={30} /><b>IO TECNOLOGIA</b></div>
+        <button type="button" className="icone-btn bt-menu" onClick={() => setMenu(true)} title="Menu" aria-label="Abrir menu"><Icone n="menu" /></button>
+        <div className="topo-marca"><Logo tam={30} /><b>PARDAL</b></div>
         <div className="migalha">Início{atual && <> &nbsp;/&nbsp; <b>{atual.nome}</b></>}</div>
         <BuscaGeral />
         <div className="topo-dir">
@@ -50,9 +53,7 @@ export function Shell() {
         </div>
       </header>
       <main className="conteudo"><Outlet /></main>
-      <nav className="nav-celular" aria-label="Menu">
-        {PAGINAS.filter((p) => p.perfis.includes(perfil)).map((p) => <NavLink key={p.id} to={p.rota} className={({ isActive }) => (isActive ? 'ativo' : '')}><Icone n={p.icone} />{p.nome}</NavLink>)}
-      </nav>
+      {menu && <div className="lat-veu" onClick={() => setMenu(false)} />}
       <footer className="status"><span className="on">Mock funcional</span><span>Dados fictícios · nada é salvo ao recarregar</span><span className="dir">{s.usuario!.email} · perfil {PERFIS[perfil].nome}</span></footer>
     </div>
   );

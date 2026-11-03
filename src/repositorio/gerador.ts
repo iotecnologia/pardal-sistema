@@ -3,7 +3,7 @@
 //   → refugo/RNC → O.P concluída → nota faturada → certificado de qualidade.
 // Sorteio com semente fixa: a mesma data gera sempre a mesma base. Nenhum dado é de empresa ou pessoa real.
 import type {
-  BaseFenix, Certificado, Cliente, Colaborador, CustoFixo, Elemento, Empresa, FichaForno, Forno, Insumo, ItemCarga,
+  BasePardal, Certificado, Cliente, Colaborador, CustoFixo, Elemento, Empresa, FichaForno, Forno, Insumo, ItemCarga,
   LancamentoFolha, Liga, Manutencao, MovInsumo, NotaFaturada, Orcamento, OrdemProducao, Rnc, Usuario,
 } from '../tipos/modelos';
 import { diaSemana, hhmm, somaDias } from '../util/datas';
@@ -88,18 +88,18 @@ const CARGOS: [string, string, number, number][] = [
 const EQUIP: [string, 'manutencao' | 'compra' | 'combustivel', string, [number, number], string][] = [
   ['Forno 1 · Bobina de indução', 'manutencao', 'Reaperto e teste de isolação da bobina', [1800, 4200], 'Indutherm Serviços Elétricos'],
   ['Forno 2 · Painel de potência', 'manutencao', 'Troca de capacitor do banco', [2600, 7800], 'Indutherm Serviços Elétricos'],
-  ['Ponte rolante 5 t', 'manutencao', 'Revisão de freio e cabo de aço', [900, 2400], 'Içamentos MT'],
-  ['Misturador de areia', 'manutencao', 'Troca de pás e rolamentos', [1200, 3100], 'Mecânica Industrial Rondon'],
+  ['Ponte rolante 5 t', 'manutencao', 'Revisão de freio e cabo de aço', [900, 2400], 'Içamentos Industriais'],
+  ['Misturador de areia', 'manutencao', 'Troca de pás e rolamentos', [1200, 3100], 'Mecânica Industrial Central'],
   ['Jato de granalha', 'manutencao', 'Reposição de palhetas da turbina', [1400, 3600], 'Granalhas Centro-Oeste'],
-  ['Compressor de ar', 'manutencao', 'Troca de óleo e filtros', [450, 1100], 'Ar Comprimido Rondon'],
+  ['Compressor de ar', 'manutencao', 'Troca de óleo e filtros', [450, 1100], 'Ar Comprimido Brasil'],
   ['Empilhadeira 2,5 t', 'combustivel', 'Gás GLP P20 (4 cilindros)', [520, 760], 'Distribuidora de Gás Planalto'],
-  ['Gerador diesel', 'combustivel', 'Óleo diesel S10', [800, 1900], 'Posto Rota 163'],
-  ['Esmerilhadeira 9"', 'compra', 'Compra de esmerilhadeira nova', [780, 1250], 'Ferramentas Rondonópolis'],
-  ['Caçamba de vazamento 500 kg', 'manutencao', 'Refazer revestimento refratário', [650, 1500], 'Refratários Cuiabá'],
+  ['Gerador diesel', 'combustivel', 'Óleo diesel S10', [800, 1900], 'Posto Rodovia'],
+  ['Esmerilhadeira 9"', 'compra', 'Compra de esmerilhadeira nova', [780, 1250], 'Ferramentas Industriais'],
+  ['Caçamba de vazamento 500 kg', 'manutencao', 'Refazer revestimento refratário', [650, 1500], 'Refratários Nacional'],
 ];
 const CAUSAS_OP = ['Porosidade', 'Inclusão de areia', 'Rechupe', 'Peça incompleta', 'Trinca', 'Quebra na rebarbação'];
 
-export function gerarBase(hojeIso: string): BaseFenix {
+export function gerarBase(hojeIso: string): BasePardal {
   const s = sorteador(20260000 + Number(hojeIso.replace(/-/g, '').slice(2)));
   const inicio = somaMes(mesDe(hojeIso), -6) + '-01'; // 1 mês a mais de aquecimento: a fila de produção já começa cheia
   const cls = clientes as Cliente[];
@@ -282,7 +282,7 @@ export function gerarBase(hojeIso: string): BaseFenix {
             certificados.push({
               id: id('cq'), numero: proximoNumero(certificados, dn), data: dn, clienteId: op.clienteId, notaFiscal: nota.notaFiscal, fichaId: ultimaFicha.id, ligaId: op.ligaId,
               itens: [op.desenho], mecanica: mec,
-              tratamento: lgx.tipo === 'branco' ? { data: somaDias(de, -1), empresa: 'Tratamentos Térmicos Cuiabá', tipo: 'Têmpera e revenimento', certificado: 'TT-' + s.ent(2000, 9999) } : undefined,
+              tratamento: lgx.tipo === 'branco' ? { data: somaDias(de, -1), empresa: 'Tratamentos Térmicos Aliança', tipo: 'Têmpera e revenimento', certificado: 'TT-' + s.ent(2000, 9999) } : undefined,
               metalografia: lgx.tipo === 'nodular' ? `Grafita esferoidal, nodularização ${s.ent(85, 95)}%, matriz ferrítico-perlítica.` : lgx.tipo === 'cinzento' ? 'Grafita lamelar tipo A, tamanho 4-5, matriz perlítica.' : 'Carbonetos M7C3 em matriz martensítica.',
             });
           }
@@ -364,7 +364,7 @@ export function gerarBase(hojeIso: string): BaseFenix {
     return { mes, energia: arred(bruto * 0.62 * 0.94 + 6800 * parcial), agua: arred(s.entre(1150, 1650) * parcial), diversos: arred(s.entre(4800, 7200) * parcial) };
   });
 
-  const base: BaseFenix = {
+  const base: BasePardal = {
     empresa: empresa as Empresa, usuarios: (usuarios as (Usuario & { sal: string; hash: string })[]).map(({ sal: _s, hash: _h, ...u }) => u),
     clientes: cls, ligas: lgs, fornos: frn, insumos: ins, movimentos,
     orcamentos, faturamento, ops, fichas, rncs, certificados, manutencoes, colaboradores, folha, custosFixos,
@@ -379,8 +379,8 @@ export function gerarBase(hojeIso: string): BaseFenix {
 }
 
 function fornecedorDe(i: Insumo): string {
-  if (i.grupo === 'IFR') return i.nome.startsWith('Sucata') ? 'Reciclagem de Metais Rondon' : i.carga ? 'Ferroligas Brasil Central' : 'Refratários e Abrasivos MT';
-  if (i.grupo === 'IMF') return i.nome.startsWith('Areia') ? 'Mineração de Areia Rio Vermelho' : 'Química para Fundição Centro-Oeste';
-  if (i.grupo === 'EPI') return 'Segurança do Trabalho Rondonópolis';
-  return 'Atacado Rondon';
+  if (i.grupo === 'IFR') return i.nome.startsWith('Sucata') ? 'Reciclagem de Metais Central' : i.carga ? 'Ferroligas Brasil' : 'Refratários e Abrasivos Brasil';
+  if (i.grupo === 'IMF') return i.nome.startsWith('Areia') ? 'Mineração de Areia Rio Vermelho' : 'Química para Fundição Brasil';
+  if (i.grupo === 'EPI') return 'Segurança do Trabalho Brasil';
+  return 'Atacado Central';
 }

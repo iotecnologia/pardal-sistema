@@ -1,11 +1,13 @@
 // Insumos — substitui as 4 abas "CONSUMO DE …" + as ~260 abas por insumo (I.R.F, I.M.F, E.P.I, I.E.L).
 // Estoque contínuo (sem digitar a sobra do mês anterior), unidade própria por insumo, alerta de estoque mínimo,
 // e baixa automática dos insumos da carga pela Ficha do Forno.
+import { nomeMesLongo } from '../regras/periodo';
 import { useState } from 'react';
 import type { GrupoInsumo, Insumo, MovInsumo } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { BotaoIcone, BuscaLista, Campo, CampoNum, Contador, OrigemPlanilha, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho, Bloco } from '../componentes/Comuns';
+import { BotaoIcone, BuscaLista, Campo, CampoNum, Contador, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho, Bloco } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { GRUPOS_INSUMO, resumoMes, saldo, situacaoEstoque } from '../regras/insumos';
 import { mesDe, noMes } from '../regras/periodo';
@@ -32,8 +34,12 @@ export function Insumos() {
   const sel = abrir === 'novo' ? null : base.insumos.find((i) => i.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Insumos" sub={<OrigemPlanilha aba="CONSUMO DE I.F.R / I.M.F / E.P.I / I.E.L + abas por insumo" />}>
+      <TituloPagina titulo="Insumos e Estoque" sub="Estoque, consumo e compras por grupo de insumo">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo={`Insumos e Estoque · ${GRUPOS_INSUMO[g].nome}`} filtro={`Movimento de ${nomeMesLongo(mes)}${soAlerta ? ' · só abaixo do mínimo' : ''}${t ? ` · busca "${t}"` : ''}`}
+          colunas={[{ t: 'Código' }, { t: 'Insumo' }, { t: 'Unid.' }, { t: 'Estoque', dir: true }, { t: 'Mínimo', dir: true }, { t: 'Utilizado', dir: true }, { t: 'Gasto utilizado', dir: true }, { t: 'Comprado', dir: true }, { t: 'Gasto compra', dir: true }, { t: 'Situação' }]}
+          linhas={vis.map(({ i, s, r }) => [i.codigo, i.nome, i.unidade, fmtQ(i, s), fmtQ(i, i.estoqueMinimo), fmtQ(i, r.utilizado), moeda(r.gastoUtilizado), fmtQ(i, r.comprado), moeda(r.gastoCompra), SIT[situacaoEstoque(i, s)].nome])}
+          total={['Total', `${vis.length} itens`, '', '', '', '', moeda(soma(vis, (x) => x.r.gastoUtilizado)), '', moeda(soma(vis, (x) => x.r.gastoCompra)), '']} />
         <BotaoIcone icone="mais" titulo={edita ? 'Novo insumo' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">

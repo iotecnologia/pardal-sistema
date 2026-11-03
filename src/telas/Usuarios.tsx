@@ -24,9 +24,9 @@ export function Usuarios() {
         <Bloco titulo={<><Icone n="chave" /> Permissões por perfil</>} extra={<span className="mut peq">edita · consulta · sem acesso</span>}>
           <div className="rolagem-x">
             <table className="tab matriz">
-              <thead><tr><th>Tela</th><th>Substitui na planilha</th>{perfis.map((p) => <th key={p} className="centro">{PERFIS[p].nome}</th>)}</tr></thead>
+              <thead><tr><th>Tela</th><th>Grupo</th>{perfis.map((p) => <th key={p} className="centro">{PERFIS[p].nome}</th>)}</tr></thead>
               <tbody>{PAGINAS.map((pg) => (
-                <tr key={pg.id}><td><span className="cel-ic"><Icone n={pg.icone} /> {pg.nome}</span></td><td className="mut peq">{pg.planilha}</td>
+                <tr key={pg.id}><td><span className="cel-ic"><Icone n={pg.icone} /> {pg.nome}</span></td><td className="mut peq">{pg.grupo || '—'}</td>
                   {perfis.map((p) => <td key={p} className="centro">{!pg.perfis.includes(p) ? <span className="mut">—</span> : pg.edita.includes(p) ? <Tag cls="t-ok">edita</Tag> : <Tag cls="t-fim">consulta</Tag>}</td>)}
                 </tr>))}</tbody>
             </table>

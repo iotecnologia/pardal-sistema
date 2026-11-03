@@ -1,11 +1,9 @@
-// Orçamento — abas "GERAÇÃO DE ORÇAMENTO" e "ORÇAMENTO (n)" da planilha, POR KG:
+// Orçamento — preço POR KG:
 //   imposto R$/kg   = preço × imposto %                  [K]
 //   comissão R$/kg  = preço × comissão %                 [M]
 //   lucro R$/kg     = preço − (imposto + comissão + custo por kg fabricado)   [L = G − (K + M + L4)]
 //   margem %        = lucro ÷ preço                      [J]
 //   valor do item   = preço/kg × peso × quantidade       [J17…J31]
-// Correção: na planilha, 150 das 200 abas de orçamento tinham o item 004 apontando para L14 (vazio)
-// e o item 015 com o preço fixo 14 — aqui todos os itens usam o mesmo preço/kg.
 import type { Orcamento } from '../tipos/modelos';
 import { arred, soma } from '../util/formato';
 

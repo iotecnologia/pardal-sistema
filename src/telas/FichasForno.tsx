@@ -1,13 +1,15 @@
 // Fichas do Forno (apontamento de corrida) — substitui "GERAÇÃO F.F" + as 200 abas "FF (n)".
 // Novo: a química é conferida na hora contra a liga; as peças são apontadas por O.P; ao salvar,
 // os insumos da carga saem do estoque sozinhos (antes era somado por fórmula em outra aba).
+import { nomeMesLongo } from '../regras/periodo';
 import { useState } from 'react';
 import type { Elemento, FichaForno, ItemCarga } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, Campo, CampoNum, Contador, OrigemPlanilha, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, Campo, CampoNum, Contador, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
-import { Imprimir } from '../componentes/Folha';
+import { Saida, type ModoSaida } from '../componentes/Folha';
 import { DocFicha } from '../componentes/Documentos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { cargaNominal, cargaSugerida, conferirQuimica, dentro, pesosFicha, rendimento, situacaoFicha, tempoCorrida, textoFaixa } from '../regras/forno';
 import { opsParaCorrida, progressoOP } from '../regras/producao';
@@ -37,8 +39,12 @@ export function FichasForno() {
 
   return (
     <>
-      <TituloPagina titulo="Fichas do Forno" sub={<OrigemPlanilha aba="GERAÇÃO F.F + abas FF (1…200)" />}>
+      <TituloPagina titulo="Fichas do Forno" sub="Apontamento das corridas: carga, química, temperatura e peças fundidas">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Fichas do Forno" filtro={`${nomeMesLongo(mes)} · ${f === 'fora' ? 'fora de especificação' : 'todas as corridas'}`}
+          colunas={[{ t: 'Ficha' }, { t: 'Data' }, { t: 'Forno' }, { t: 'Liga' }, { t: 'Nominal (kg)', dir: true }, { t: 'Efetiva (kg)', dir: true }, { t: 'Líquido (kg)', dir: true }, { t: 'Rend.', dir: true }, { t: 'Química' }, { t: 'Temp. (°C)', dir: true }]}
+          linhas={vis.map(({ ff, p, nom, s }) => [ff.numero, `${br(ff.data)} ${ff.posicao}ª`, forno(ff.fornoId), liga(ff.ligaId), n0(nom), n0(p.bruto), n0(p.liquido), pct(rendimento(p.liquido, p.bruto), 0), s.quimicaOk ? 'conforme' : 'fora: ' + s.foraQuimica.join(', '), String(ff.temperatura)])}
+          total={['Total', `${vis.length} corridas`, '', '', n0(soma(vis, (x) => x.nom)), n0(soma(vis, (x) => x.p.bruto)), n0(soma(vis, (x) => x.p.liquido)), pct(rendimento(soma(vis, (x) => x.p.liquido), soma(vis, (x) => x.p.bruto)), 0), '', '']} />
         <BotaoIcone icone="mais" titulo={edita ? 'Nova corrida' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">
@@ -107,7 +113,7 @@ function RegistroFicha({ ficha, fechar }: { ficha?: FichaForno; fechar: () => vo
     };
   };
   const { r, setR, mudar, editando, setEditando, erro, setErro, descartar } = useRascunho(inicial(), novo);
-  const [imprimir, setImprimir] = useState(false);
+  const [saida, setSaida] = useState<ModoSaida | null>(null);
   const lg = base.ligas.find((l) => l.id === r.ligaId)!;
   const forno = base.fornos.find((x) => x.id === r.fornoId)!;
   const nom = cargaNominal(r, base), p = pesosFicha(r, base);
@@ -131,7 +137,7 @@ function RegistroFicha({ ficha, fechar }: { ficha?: FichaForno; fechar: () => vo
   return (
     <Registro
       titulo={novo ? 'Nova corrida · ficha do forno' : <>Ficha do forno <span className="mono">{r.numero}</span></>} novo={novo} edita={edita} editando={editando} setEditando={setEditando}
-      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setImprimir(true)}
+      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setSaida('imprimir')} pdf={novo ? undefined : () => setSaida('pdf')}
       cabecalho={<>{conf.every((c) => c.ok) ? <Tag cls="t-ok">química conforme</Tag> : <Tag cls="t-no">química fora: {conf.filter((c) => !c.ok).map((c) => c.elemento).join(', ')}</Tag>}
         {r.temperatura > 0 && (dentro(r.temperatura, lg.temperatura) ? <Tag cls="t-ok">temperatura ok</Tag> : <Tag cls="t-at">temperatura fora</Tag>)}</>}
     >
@@ -221,7 +227,7 @@ function RegistroFicha({ ficha, fechar }: { ficha?: FichaForno; fechar: () => vo
         )}
       </Bloco>
       {editando && <p className="nota"><Icone n="info" /> Ao salvar, os insumos da carga saem do estoque (retirada com origem “FF {r.numero}”) e as peças contam no progresso das O.P.</p>}
-      {imprimir && <Imprimir aoTerminar={() => setImprimir(false)}><DocFicha f={r} base={base} /></Imprimir>}
+      {saida && <Saida modo={saida} nome={`Ficha do Forno ${r.numero}`} aoTerminar={() => setSaida(null)}><DocFicha f={r} base={base} /></Saida>}
     </Registro>
   );
 }

@@ -1,12 +1,12 @@
 // Base carregada pelo repositório + ações de gravação.
 // No mock tudo fica só na memória da página: recarregou, volta ao início. Na versão final cada ação chama a API.
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import type { BaseFenix, CustoFixo, FichaForno, MovInsumo } from '../tipos/modelos';
+import type { BasePardal, CustoFixo, FichaForno, MovInsumo } from '../tipos/modelos';
 import type { Repositorio } from '../repositorio/repositorio';
 
 /** Coleções da base que são listas de registros com id. */
-export type Colecao = { [K in keyof BaseFenix]: BaseFenix[K] extends readonly { id: string }[] ? K : never }[keyof BaseFenix];
-type Item<K extends Colecao> = BaseFenix[K][number];
+export type Colecao = { [K in keyof BasePardal]: BasePardal[K] extends readonly { id: string }[] ? K : never }[keyof BasePardal];
+type Item<K extends Colecao> = BasePardal[K][number];
 
 interface Acoes {
   /** Cria (sem id ou id novo) ou altera um registro. Devolve o registro gravado. */
@@ -18,7 +18,7 @@ interface Acoes {
   salvarFixo(c: CustoFixo): void;
   novoId(prefixo: string): string;
 }
-interface Ctx { base: BaseFenix; acoes: Acoes }
+interface Ctx { base: BasePardal; acoes: Acoes }
 const C = createContext<Ctx | null>(null);
 
 let seq = 0;
@@ -26,7 +26,7 @@ const novoId = (p: string) => `${p}n${Date.now().toString(36)}${++seq}`;
 
 /** Carrega a base. Só é montado DEPOIS do login. Enquanto carrega não desenha nada: a tela de abertura mostra a espera. */
 export function DadosProvider({ repo, children, aoCarregar }: { repo: Repositorio; children: ReactNode; aoCarregar?: () => void }) {
-  const [base, setBase] = useState<BaseFenix | null>(null);
+  const [base, setBase] = useState<BasePardal | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   useEffect(() => {
     const t = setTimeout(() => { repo.carregar().then((b) => { setBase(b); aoCarregar?.(); }).catch((e) => setErro(String(e))); }, 30);

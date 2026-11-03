@@ -1,6 +1,6 @@
 // Documento A4 (Orçamento, O.P, Ficha do Forno, RNC, Certificado). A mesma folha aparece na tela (prévia) e na impressão.
 // Impressão: preto no branco, sem fundo colorido; negrito só no título do documento e no cabeçalho das tabelas.
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import type { Empresa } from '../tipos/modelos';
 
@@ -42,4 +42,34 @@ export function Imprimir({ children, aoTerminar }: { children: ReactNode; aoTerm
     return () => clearTimeout(t);
   }, [aoTerminar]);
   return createPortal(<div className="area-impressao">{children}</div>, document.body);
+}
+
+export type ModoSaida = 'imprimir' | 'pdf';
+
+/** Gera o PDF (arquivo baixado) do conteúdo: monta fora da tela, converte e salva com o nome dado. */
+export function GerarPdf({ children, nome, aoTerminar }: { children: ReactNode; nome: string; aoTerminar: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    let vivo = true;
+    (async () => {
+      try {
+        const { default: html2pdf } = await import('html2pdf.js');
+        if (!vivo || !ref.current) return;
+        await html2pdf().set({
+          margin: 0, filename: nome.replace(/[\\/:*?"<>|]+/g, '-') + '.pdf',
+          image: { type: 'jpeg', quality: 0.95 },
+          html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+          pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', '.doc-sec h2'] },
+        }).from(ref.current).save();
+      } finally { if (vivo) aoTerminar(); }
+    })();
+    return () => { vivo = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return createPortal(<div className="area-pdf"><div ref={ref}>{children}</div></div>, document.body);
+}
+
+/** Imprime ou gera PDF do documento, conforme o modo escolhido. */
+export function Saida({ modo, nome, aoTerminar, children }: { modo: ModoSaida; nome: string; aoTerminar: () => void; children: ReactNode }) {
+  return modo === 'pdf' ? <GerarPdf nome={nome} aoTerminar={aoTerminar}>{children}</GerarPdf> : <Imprimir aoTerminar={aoTerminar}>{children}</Imprimir>;
 }

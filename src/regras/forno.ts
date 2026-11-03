@@ -1,20 +1,20 @@
-// Ficha do Forno (F.F) — mesmas contas da aba "FF (n)" da planilha:
+// Ficha do Forno (F.F) — contas da corrida:
 //   carga nominal  = retorno + carga e correção dos insumos metálicos (o fluxo de limpeza não entra)   [K6]
 //   carga efetiva  = peso BRUTO das peças fundidas (Σ peso bruto × peças)                              [B47 → R6]
 //   peso líquido   = peso LIMPO das peças fundidas (Σ peso líquido × peças)                            [J47]
 //   rendimento     = peso líquido ÷ peso bruto da carga                                                [R47]
-import type { BaseFenix, Elemento, Faixa, FichaForno, ItemCarga, Liga } from '../tipos/modelos';
+import type { BasePardal, Elemento, Faixa, FichaForno, ItemCarga, Liga } from '../tipos/modelos';
 import { min } from '../util/datas';
 import { arred, soma } from '../util/formato';
 
 export const ELEMENTOS: Elemento[] = ['C', 'Si', 'Mn', 'P', 'S', 'Cu', 'Cr', 'Ni', 'Mg'];
 
-export function cargaNominal(f: FichaForno, base: Pick<BaseFenix, 'insumos'>): number {
+export function cargaNominal(f: FichaForno, base: Pick<BasePardal, 'insumos'>): number {
   const metalico = (id: string) => base.insumos.find((i) => i.id === id)?.carga === 'metalico';
   return arred(f.retornoKg + soma(f.carga.filter((c) => metalico(c.insumoId)), (c) => c.carga + c.correcao), 1);
 }
 
-export function pesosFicha(f: FichaForno, base: Pick<BaseFenix, 'ops'>) {
+export function pesosFicha(f: FichaForno, base: Pick<BasePardal, 'ops'>) {
   let bruto = 0, liquido = 0, pecas = 0;
   for (const p of f.pecas) {
     const op = base.ops.find((o) => o.id === p.opId);
@@ -29,7 +29,7 @@ export function pesosFicha(f: FichaForno, base: Pick<BaseFenix, 'ops'>) {
 /** Rendimento metálico da carga (0 a 1). */
 export const rendimento = (liquido: number, bruto: number) => (bruto > 0 ? liquido / bruto : 0);
 
-/** Tempo total da corrida em minutos (planilha: Final − Início). */
+/** Tempo total da corrida em minutos (fim − início). */
 export const tempoCorrida = (f: FichaForno) => (f.horaInicio && f.horaFim ? min(f.horaFim) - min(f.horaInicio) : 0);
 
 export const dentro = (v: number | undefined, fx?: Faixa) =>
@@ -42,7 +42,7 @@ export function conferirQuimica(quimica: FichaForno['quimica'], liga: Liga): Con
   return ELEMENTOS.filter((e) => liga.quimica[e] || quimica[e] !== undefined).map((e) => ({ elemento: e, valor: quimica[e], faixa: liga.quimica[e], ok: dentro(quimica[e], liga.quimica[e]) }));
 }
 
-export function situacaoFicha(f: FichaForno, base: Pick<BaseFenix, 'ligas'>) {
+export function situacaoFicha(f: FichaForno, base: Pick<BasePardal, 'ligas'>) {
   const liga = base.ligas.find((l) => l.id === f.ligaId);
   if (!liga) return { quimicaOk: true, temperaturaOk: true, foraQuimica: [] as Elemento[] };
   const conf = conferirQuimica(f.quimica, liga);

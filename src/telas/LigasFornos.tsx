@@ -1,10 +1,11 @@
-// Ligas, normas e fornos — cadastro novo. Na planilha a especificação química e mecânica era digitada
-// de novo em cada Ficha do Forno e em cada Certificado; agora fica na liga e as telas conferem sozinhas.
+// Ligas, normas e fornos — a especificação química e mecânica fica na liga;
+// a Ficha do Forno e o Certificado conferem sozinhos contra ela.
 import { useState } from 'react';
 import type { Elemento, Faixa, Forno, Liga } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, Campo, CampoNum, OrigemPlanilha, Registro, TituloPagina, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, Campo, CampoNum, Registro, TituloPagina, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { ELEMENTOS, textoFaixa } from '../regras/forno';
 import { MECANICA } from '../regras/qualidade';
@@ -20,7 +21,10 @@ export function LigasFornos() {
   const sel = abrir === 'novo' ? null : base.ligas.find((l) => l.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Ligas e Fornos" sub={<OrigemPlanilha aba="— (antes digitado em cada FF e CQ)" />}>
+      <TituloPagina titulo="Ligas e Fornos" sub="Especificação química, mecânica e de vazamento por liga; fornos e capacidades">
+        <BotoesRelatorio titulo="Ligas e Normas" filtro="Especificação por liga"
+          colunas={[{ t: 'Liga' }, { t: 'Norma' }, { t: 'Tipo' }, { t: 'C (%)' }, { t: 'Si (%)' }, { t: 'Mn (%)' }, { t: 'Dureza (HB)' }, { t: 'Vazamento (°C)' }, { t: 'Preço base', dir: true }]}
+          linhas={base.ligas.map((l) => [l.nome, l.norma, TIPOS[l.tipo], textoFaixa(l.quimica.C), textoFaixa(l.quimica.Si), textoFaixa(l.quimica.Mn), textoFaixa(l.mecanica.dureza, 0), textoFaixa(l.temperatura, 0), moeda(l.precoBaseKg) + '/kg'])} />
         <BotaoIcone icone="mais" titulo={edita ? 'Nova liga' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="pilha">

@@ -1,5 +1,4 @@
 // Mês de referência e numeração dos documentos.
-// Planilha: cada arquivo era um mês (ÍNDICE!L2 = "10.26") e os documentos eram numerados 001, 002… dentro do mês.
 // No sistema o histórico é contínuo; a numeração continua "MM.AA-NNN", reiniciando a cada mês, como a fundição já usa.
 import { nomeMes } from '../util/datas';
 
@@ -22,7 +21,7 @@ export const mesCurto = (mes: string) => { const [a, m] = mes.split('-').map(Num
 /** Os últimos n meses até `mes` (inclusive), do mais antigo ao mais novo. */
 export const ultimosMeses = (mes: string, n: number) => Array.from({ length: n }, (_, i) => somaMes(mes, i - n + 1));
 
-/** Prefixo do mês, igual ao da planilha: '2026-10-21' → '10.26' */
+/** Prefixo do mês: '2026-10-21' → '10.26' */
 export const prefixoMes = (data: string) => `${data.slice(5, 7)}.${data.slice(2, 4)}`;
 
 /** Próximo número do mês da data: '10.26-001', '10.26-002'… */

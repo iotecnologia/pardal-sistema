@@ -1,10 +1,10 @@
-// Custo Mensal — substitui a aba "CUSTO MENSAL" (custos da fundição para montagem de orçamento).
+// Custo Mensal — custos da fundição e custo por kg fabricado (base do orçamento).
 // Tudo vem dos outros módulos; só energia, água/esgoto e diversos são lançados aqui.
-// Mostra o ponto a validar da planilha: o refugo somado por cima do custo já dividido pelo metal limpo.
 import { useState } from 'react';
 import type { CustoFixo } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, Campo, CampoNum, OrigemPlanilha, Registro, SeletorMes, Tag, TituloPagina, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, Campo, CampoNum, Registro, SeletorMes, Tag, TituloPagina, useEdita, useRascunho } from '../componentes/Comuns';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { Icone } from '../componentes/Icone';
 import { Proporcao } from '../componentes/Graficos';
 import { custoMes } from '../regras/custo';
@@ -34,8 +34,12 @@ export function CustoMensal() {
   ];
   return (
     <>
-      <TituloPagina titulo="Custo Mensal" sub={<><OrigemPlanilha aba="CUSTO MENSAL" /> {andamento && <Tag cls="t-at">mês em andamento · parcial</Tag>}</>}>
+      <TituloPagina titulo="Custo Mensal" sub={<>Custos da fundição e custo por kg fabricado {andamento && <Tag cls="t-at">mês em andamento · parcial</Tag>}</>}>
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Custo Mensal" filtro={`${nomeMesLongo(mes)}${andamento ? ' · mês em andamento (parcial)' : ''} · metal bruto ${kg(c.metalBruto)} · metal limpo ${kg(c.metalLimpo)} · rendimento ${pct(c.rendimento)}`}
+          colunas={[{ t: 'Custo' }, { t: 'De onde vem' }, { t: 'Valor', dir: true }, { t: 'R$/kg limpo', dir: true }]}
+          linhas={[...c.linhas.map((l) => [l.nome, ORIGEM[l.chave], moeda(l.valor), c.metalLimpo ? moeda(l.valor / c.metalLimpo) : '—']), ['Total dos custos', '', moeda(c.custos), rkg(c.custoKgSemRefugo)], [`Refugo (${pct(c.refugoPct, 2)} do metal bruto · ${kg(c.refugoKg)})`, 'Não conformidades', moeda(c.custoRefugo), '']]}
+          total={['Custo por kg fabricado', '', moeda(c.custoTotal), rkg(c.custoKg)]} />
         <BotaoIcone icone="editar" titulo={edita ? 'Lançar energia, água e diversos' : 'Seu perfil só consulta'} disabled={!edita} onClick={() => setEditar(true)} />
       </TituloPagina>
       <div className="custo-topo">
@@ -63,14 +67,6 @@ export function CustoMensal() {
               </tbody>
             </table>
           </Bloco>
-          <div className="aviso-validar">
-            <Icone n="info" />
-            <div>
-              <b>Ponto a validar com a diretoria</b>
-              <p>A planilha divide o custo pelo metal <em>limpo</em> (isso já carrega a perda em cada kg bom) e depois soma o custo do refugo por cima. A perda pode estar sendo contada duas vezes.</p>
-              <p>Como a planilha: <b className="mono">{rkg(c.custoKg)}</b> · Sem somar o refugo: <b className="mono">{rkg(c.custoKgSemRefugo)}</b> · Diferença: <b className="mono">{rkg(c.custoKg - c.custoKgSemRefugo)}</b></p>
-            </div>
-          </div>
         </div>
         <div className="pilha">
           <Bloco titulo={<><Icone n="alerta" /> Refugo</>}>

@@ -8,7 +8,7 @@ import usuarios from '../dados/usuarios.json';
 
 export type ResultadoLogin = { ok: true } | { ok: false; motivo: string };
 interface Sessao { usuario: Usuario | null; entrar(email: string, senha: string): Promise<ResultadoLogin>; sair(): void; ehDiretoria: boolean }
-const CHAVE = 'iofenix:sessao';
+const CHAVE = 'pardal:sessao';
 const Ctx = createContext<Sessao | null>(null);
 const lista = usuarios as (Usuario & { sal: string; hash: string })[];
 

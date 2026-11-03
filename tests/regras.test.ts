@@ -24,7 +24,7 @@ describe('orçamento (planilha GERAÇÃO DE ORÇAMENTO)', () => {
     const m = margemKg({ precoKg: 20, impostoPct: 10, comissaoPct: 2, custoKgRef: 11 });
     expect(m.imposto).toBe(2); expect(m.comissao).toBe(0.4); expect(m.lucro).toBe(6.6); expect(m.margem).toBeCloseTo(0.33);
   });
-  it('todos os itens usam o mesmo preço/kg (corrige o item 004 e 015 da planilha)', () => {
+  it('todos os itens usam o mesmo preço/kg', () => {
     const t = totaisOrcamento({ precoKg: 20, impostoPct: 0, comissaoPct: 0, custoKgRef: 0, itens: Array.from({ length: 15 }, () => ({ identificacao: 'x', pesoKg: 2, quantidade: 3 })) });
     expect(t.valor).toBe(15 * 20 * 2 * 3);
   });

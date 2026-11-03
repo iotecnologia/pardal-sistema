@@ -5,6 +5,7 @@ import './estilos/base.css';
 import './estilos/telas.css';
 import './estilos/impressao.css';
 import './estilos/gestao.css';
-import './estilos/fenix.css';
+import './estilos/pardal.css';
+import './estilos/tv.css';
 
 createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>);

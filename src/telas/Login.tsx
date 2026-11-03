@@ -3,8 +3,7 @@
 import { useState, type FormEvent } from 'react';
 import { useSessao } from '../acesso/Sessao';
 import { Icone } from '../componentes/Icone';
-import { Logo } from '../componentes/Marca';
-import empresa from '../dados/empresa.json';
+import { LogoCompleto } from '../componentes/Marca';
 
 export function Login() {
   const s = useSessao();
@@ -25,7 +24,7 @@ export function Login() {
     <div className="login">
       <div className="login-marca">
         <div className="deco" />
-        <div className="logo-bloco"><Logo tam={46} /><div><b>IO TECNOLOGIA</b><small>{empresa.nome} · {empresa.cidade.split('·')[0].trim()}</small></div></div>
+        <div className="logo-bloco"><LogoCompleto largura={220} /></div>
         <h1>A fundição inteira em um só lugar, <em>do orçamento ao certificado.</em></h1>
         <p>Orçamento com margem pelo custo real do kg, ordem de produção, ficha do forno com baixa automática dos insumos, refugo, certificado de qualidade e o custo mensal fechando sozinho.</p>
         <div className="modulos-lista">
@@ -34,7 +33,7 @@ export function Login() {
           <span><Icone n="escudo" /> RNC e certificados</span>
           <span><Icone n="grafico" /> Custo por kg e indicadores</span>
         </div>
-        <div className="rod">IO Tecnologia · sistema de gestão {empresa.fantasia}</div>
+        <div className="rod">Pardal · Sistema de Gerenciamento Industrial · v0.1 · IO Tecnologia</div>
       </div>
       <div className="login-form">
         <form className="form-caixa" onSubmit={entrar}>

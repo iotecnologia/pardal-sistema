@@ -1,6 +1,6 @@
-// Os documentos impressos — substituem as ~1.100 abas copiadas da planilha (ORÇAMENTO (n), OP (n), FF (n), RNC (n), CQ (n)).
+// Os documentos impressos: Orçamento, O.P, Ficha do Forno, RNC e Certificado.
 // Cada documento é gerado do registro; não existe mais limite de 100/200 por mês.
-import type { BaseFenix, Certificado, FichaForno, Orcamento, OrdemProducao, Rnc } from '../tipos/modelos';
+import type { BasePardal, Certificado, FichaForno, Orcamento, OrdemProducao, Rnc } from '../tipos/modelos';
 import { Assinaturas, Documento, Pares, Secao } from './Folha';
 import { br } from '../util/datas';
 import { kg, kgP, moeda, n1, n2, pct } from '../util/formato';
@@ -10,10 +10,10 @@ import { cargaNominal, conferirQuimica, pesosFicha, rendimento, tempoCorrida, te
 import { conferirCertificado, pesoRnc } from '../regras/qualidade';
 import { hoje } from '../util/datas';
 
-const nomeCli = (b: BaseFenix, id: string) => b.clientes.find((c) => c.id === id);
-const nomeLiga = (b: BaseFenix, id: string) => b.ligas.find((l) => l.id === id);
+const nomeCli = (b: BasePardal, id: string) => b.clientes.find((c) => c.id === id);
+const nomeLiga = (b: BasePardal, id: string) => b.ligas.find((l) => l.id === id);
 
-export function DocOrcamento({ o, base }: { o: Orcamento; base: BaseFenix }) {
+export function DocOrcamento({ o, base }: { o: Orcamento; base: BasePardal }) {
   const c = nomeCli(base, o.clienteId), l = nomeLiga(base, o.ligaId);
   const t = totaisOrcamento(o);
   return (
@@ -35,7 +35,7 @@ export function DocOrcamento({ o, base }: { o: Orcamento; base: BaseFenix }) {
   );
 }
 
-export function DocOP({ op, base }: { op: OrdemProducao; base: BaseFenix }) {
+export function DocOP({ op, base }: { op: OrdemProducao; base: BasePardal }) {
   const c = nomeCli(base, op.clienteId), l = nomeLiga(base, op.ligaId);
   const p = pesosOP(op), pr = progressoOP(op, base, hoje());
   const corridas = base.fichas.filter((f) => f.pecas.some((x) => x.opId === op.id));
@@ -67,7 +67,7 @@ export function DocOP({ op, base }: { op: OrdemProducao; base: BaseFenix }) {
   );
 }
 
-export function DocFicha({ f, base }: { f: FichaForno; base: BaseFenix }) {
+export function DocFicha({ f, base }: { f: FichaForno; base: BasePardal }) {
   const l = nomeLiga(base, f.ligaId)!, forno = base.fornos.find((x) => x.id === f.fornoId);
   const p = pesosFicha(f, base), nom = cargaNominal(f, base);
   const conf = conferirQuimica(f.quimica, l);
@@ -106,7 +106,7 @@ export function DocFicha({ f, base }: { f: FichaForno; base: BaseFenix }) {
   );
 }
 
-export function DocRnc({ r, base }: { r: Rnc; base: BaseFenix }) {
+export function DocRnc({ r, base }: { r: Rnc; base: BasePardal }) {
   const op = base.ops.find((o) => o.id === r.opId);
   return (
     <Documento empresa={base.empresa} titulo="Relatório de Não Conformidade" numero={r.numero}>
@@ -120,7 +120,7 @@ export function DocRnc({ r, base }: { r: Rnc; base: BaseFenix }) {
   );
 }
 
-export function DocCertificado({ c, base }: { c: Certificado; base: BaseFenix }) {
+export function DocCertificado({ c, base }: { c: Certificado; base: BasePardal }) {
   const cf = conferirCertificado(c, base);
   const cli = nomeCli(base, c.clienteId);
   return (

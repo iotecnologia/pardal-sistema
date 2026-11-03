@@ -1,20 +1,22 @@
 // RNC — Relatório de Não Conformidade. Substitui "GERAÇÃO DE R.N.C" + as 100 abas "RNC (n)".
 // Novo: escolhendo a O.P, cliente, desenho, liga e peso vêm sozinhos; a RNC pode lançar o refugo na O.P;
 // o peso perdido entra no % de refugo do Custo Mensal.
+import { nomeMesLongo } from '../regras/periodo';
 import { useState } from 'react';
 import type { Rnc } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, OrigemPlanilha, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
-import { Imprimir } from '../componentes/Folha';
+import { Saida, type ModoSaida } from '../componentes/Folha';
 import { DocRnc } from '../componentes/Documentos';
 import { BarrasH } from '../componentes/Graficos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { MOTIVOS_RNC, pesoRnc } from '../regras/qualidade';
 import { custoMes } from '../regras/custo';
 import { mesDe, noMes, proximoNumero } from '../regras/periodo';
 import { br, brCurto, hoje } from '../util/datas';
-import { kg, kgP, n0, pct, semAcento, soma } from '../util/formato';
+import { kg, kgP, n0, n1, pct, semAcento, soma } from '../util/formato';
 
 type Filtro = 'todas' | 'aberta' | 'encerrada';
 
@@ -36,8 +38,12 @@ export function Rncs() {
   const abertasTodas = base.rncs.filter((r) => r.status === 'aberta').length;
   return (
     <>
-      <TituloPagina titulo="RNC · Não Conformidade" sub={<OrigemPlanilha aba="GERAÇÃO DE R.N.C + abas RNC (1…100)" />}>
+      <TituloPagina titulo="Não Conformidades (RNC)" sub="Não conformidades, perdas e ações corretivas">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Não Conformidades (RNC)" filtro={`${nomeMesLongo(mes)} · ${f === 'todas' ? 'todas' : f === 'aberta' ? 'abertas' : 'encerradas'}${t ? ` · busca "${t}"` : ''}`}
+          colunas={[{ t: 'RNC' }, { t: 'Data' }, { t: 'Cliente' }, { t: 'Desenho' }, { t: 'Peças', dir: true }, { t: 'Peso perdido (kg)', dir: true }, { t: 'Motivo' }, { t: 'Situação' }]}
+          linhas={vis.map((r) => [r.numero, br(r.data), cli(r.clienteId), r.desenho, String(r.quantidade), n1(pesoRnc(r)), r.motivo, r.status === 'aberta' ? 'aberta' : 'encerrada'])}
+          total={['Total', '', '', '', String(soma(vis, (r) => r.quantidade)), n1(soma(vis, pesoRnc)), '', '']} />
         <BotaoIcone icone="mais" titulo={edita ? 'Nova RNC' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">
@@ -85,7 +91,7 @@ function RegistroRnc({ rnc, fechar }: { rnc?: Rnc; fechar: () => void }) {
   const inicial: Rnc = rnc ?? { id: acoes.novoId('rnc'), numero: proximoNumero(base.rncs, hj), data: hj, clienteId: base.clientes[0].id, desenho: '', ligaId: 'gg20', quantidade: 1, pesoUnitKg: 0, motivo: MOTIVOS_RNC[0], acaoCorretiva: '', status: 'aberta' };
   const { r, setR, mudar, editando, setEditando, erro, setErro, descartar } = useRascunho(inicial, novo);
   const [lancarNaOP, setLancarNaOP] = useState(true);
-  const [imprimir, setImprimir] = useState(false);
+  const [saida, setSaida] = useState<ModoSaida | null>(null);
   const ed = !editando;
   const opsRecentes = [...base.ops].reverse().slice(0, 80);
   const escolherOP = (id: string) => {
@@ -106,7 +112,7 @@ function RegistroRnc({ rnc, fechar }: { rnc?: Rnc; fechar: () => void }) {
   };
   return (
     <Registro titulo={novo ? 'Nova RNC' : <>RNC <span className="mono">{r.numero}</span></>} novo={novo} edita={edita} editando={editando} setEditando={setEditando}
-      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setImprimir(true)}
+      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setSaida('imprimir')} pdf={novo ? undefined : () => setSaida('pdf')}
       cabecalho={!novo && (r.status === 'aberta' ? <Tag cls="t-at">aberta</Tag> : <Tag cls="t-fim">encerrada</Tag>)}
       acoesExtra={!novo && r.status === 'aberta' && <BotaoIcone icone="check" titulo="Encerrar RNC" cls="verde" disabled={!edita || editando} onClick={() => { const n = { ...r, status: 'encerrada' as const }; setR(n); acoes.salvar('rncs', n); }} />}>
       <div className="form-grade">
@@ -130,7 +136,7 @@ function RegistroRnc({ rnc, fechar }: { rnc?: Rnc; fechar: () => void }) {
       <datalist id="motivos-rnc">{MOTIVOS_RNC.map((m) => <option key={m} value={m} />)}</datalist>
       {novo && r.opId && <label className="chk-linha topo-sec"><input type="checkbox" checked={lancarNaOP} onChange={(e) => setLancarNaOP(e.target.checked)} /><span>Lançar estas peças como refugo na O.P<small>A O.P passa a pedir {r.quantidade} peça(s) a mais no forno.</small></span></label>}
       {!novo && r.opId && <p className="nota">O.P de origem: {base.ops.find((o) => o.id === r.opId)?.numero} · aberta em {br(base.ops.find((o) => o.id === r.opId)?.data ?? r.data)}</p>}
-      {imprimir && <Imprimir aoTerminar={() => setImprimir(false)}><DocRnc r={r} base={base} /></Imprimir>}
+      {saida && <Saida modo={saida} nome={`RNC ${r.numero}`} aoTerminar={() => setSaida(null)}><DocRnc r={r} base={base} /></Saida>}
     </Registro>
   );
 }

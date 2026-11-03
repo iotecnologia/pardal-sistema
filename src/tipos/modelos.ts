@@ -1,4 +1,4 @@
-// Modelos de dados do sistema Fênix. Cada aba "GERAÇÃO DE ..." da planilha virou uma lista de registros;
+// Modelos de dados do Pardal · Sistema de Gerenciamento Industrial.
 // as abas copiadas (OP (1), FF (1), RNC (1)…) viraram o DOCUMENTO impresso gerado a partir do registro.
 // Datas sempre como texto 'YYYY-MM-DD'; meses como 'YYYY-MM'; pesos em kg; valores em R$.
 
@@ -15,7 +15,7 @@ export interface Empresa {
 // ---------- cadastros ----------
 export interface Cliente { id: string; nome: string; cnpj: string; contato: string; telefone: string; cidade: string; segmento: string }
 
-/** Elementos químicos controlados (planilha: C, Si, Mn, P, S, Cu, Cr, Mg e, no certificado, Ni). */
+/** Elementos químicos controlados (C, Si, Mn, P, S, Cu, Cr, Mg e, no certificado, Ni). */
 export type Elemento = 'C' | 'Si' | 'Mn' | 'P' | 'S' | 'Cu' | 'Cr' | 'Ni' | 'Mg';
 /** Faixa especificada: min/max em %. Sem min = "máximo de"; sem max = "mínimo de". */
 export interface Faixa { min?: number; max?: number }
@@ -119,10 +119,10 @@ export interface Manutencao {
 export interface Colaborador { id: string; nome: string; cargo: string; salario: number; setor: string; ativo: boolean }
 export interface LancamentoFolha { id: string; mes: string; colaboradorId: string; valor: number; horaExtra: number; encargos: number; outros: number }
 
-/** Custos do mês que não vêm de outro módulo (planilha CUSTO MENSAL: energia, água e esgoto, diversos). */
+/** Custos do mês que não vêm de outro módulo (energia, água e esgoto, diversos). */
 export interface CustoFixo { mes: string; energia: number; agua: number; diversos: number }
 
-export interface BaseFenix {
+export interface BasePardal {
   empresa: Empresa;
   usuarios: Usuario[];
   clientes: Cliente[];

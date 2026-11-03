@@ -24,15 +24,17 @@ import { CustoMensal } from './telas/CustoMensal';
 import { FolhaPagamento } from './telas/FolhaPagamento';
 import { Indicadores } from './telas/Indicadores';
 import { Usuarios } from './telas/Usuarios';
+import { Colaboradores } from './telas/Colaboradores';
+import { TvBi } from './telas/TvBi';
 
 const TELAS: Record<string, ReactNode> = {
   visao: <VisaoGeral />, orcamentos: <Orcamentos />, faturamento: <Faturamento />, clientes: <Clientes />, ops: <OrdensProducao />, fichas: <FichasForno />,
   rnc: <Rncs />, certificados: <Certificados />, ligas: <LigasFornos />, insumos: <Insumos />, manutencao: <Manutencoes />, custo: <CustoMensal />,
-  folha: <FolhaPagamento />, indicadores: <Indicadores />, usuarios: <Usuarios />,
+  folha: <FolhaPagamento />, indicadores: <Indicadores />, usuarios: <Usuarios />, colaboradores: <Colaboradores />,
 };
 
 // Já estava logado quando a página abriu (recarregou)? Então a abertura é rápida.
-let sessaoAoAbrir = (() => { try { return !!sessionStorage.getItem('iofenix:sessao'); } catch { return false; } })();
+let sessaoAoAbrir = (() => { try { return !!sessionStorage.getItem('pardal:sessao'); } catch { return false; } })();
 
 function Rotas() {
   const s = useSessao();
@@ -63,6 +65,7 @@ function Telas() {
   const perfil = s.usuario!.perfil;
   return (
     <Routes>
+      <Route path="tv" element={perfil === 'diretoria' ? <TvBi /> : <Navigate to="/visao" replace />} />
       <Route element={<Shell />}>
         <Route index element={<Navigate to="/visao" replace />} />
         {PAGINAS.map((p) => (

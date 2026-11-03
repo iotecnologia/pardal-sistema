@@ -68,6 +68,10 @@ const P: Record<string, string[]> = {
   dinheiro: ['M3 6h18v12H3z', 'M12 9a3 3 0 1 0 0 6a3 3 0 0 0 0-6z', 'M6 9v.01', 'M18 15v.01'],
   entrada: ['M12 3v12', 'M7 10l5 5 5-5', 'M4 21h16'],
   saida: ['M12 21V9', 'M7 14l5-5 5 5', 'M4 3h16'],
+  tv: ['M3 5h18v12H3z', 'M8 21h8', 'M12 17v4'],
+  telacheia: ['M4 9V4h5', 'M20 9V4h-5', 'M4 15v5h5', 'M20 15v5h-5'],
+  pausa: ['M8 5v14', 'M16 5v14'],
+  menu: ['M4 6h16', 'M4 12h16', 'M4 18h16'],
 };
 
 export function Icone({ n, titulo }: { n: string; titulo?: string }) {

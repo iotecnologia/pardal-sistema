@@ -1,9 +1,8 @@
-// Insumos — abas "CONSUMO DE …" e "I.R.F (n)", "I.M.F (n)", "E.P.I (n)", "I.E.L (n)" da planilha:
+// Insumos — grupos I.R.F, I.M.F, E.P.I e I.E.L:
 //   estoque = compras do mês − retiradas do mês + sobra do mês anterior   [L8 = G8 − B8 + L4]
-// No sistema o estoque é contínuo (não precisa digitar a sobra do mês anterior) e cada insumo tem a sua unidade
-// (a planilha usava "Kg" para tudo, até para luva e sapato).
+// No sistema o estoque é contínuo (não precisa digitar a sobra do mês anterior) e cada insumo tem a sua unidade.
 // As retiradas dos insumos de carga são lançadas sozinhas quando a Ficha do Forno é gravada.
-import type { BaseFenix, GrupoInsumo, Insumo, MovInsumo } from '../tipos/modelos';
+import type { BasePardal, GrupoInsumo, Insumo, MovInsumo } from '../tipos/modelos';
 import { arred, soma } from '../util/formato';
 import { noMes } from './periodo';
 
@@ -34,10 +33,10 @@ export function resumoMes(insumo: Insumo, movs: readonly MovInsumo[], mes: strin
 export type SituacaoEstoque = 'ok' | 'baixo' | 'zerado';
 export const situacaoEstoque = (i: Insumo, s: number): SituacaoEstoque => (s <= 0 ? 'zerado' : s < i.estoqueMinimo ? 'baixo' : 'ok');
 
-/** Gasto do mês com os insumos de um grupo (planilha CUSTO MENSAL: soma da coluna "Gasto Mensal Utilizado"). */
-export const gastoGrupoMes = (base: Pick<BaseFenix, 'insumos' | 'movimentos'>, grupo: GrupoInsumo, mes: string) =>
+/** Gasto do mês com os insumos de um grupo (entra no Custo Mensal). */
+export const gastoGrupoMes = (base: Pick<BasePardal, 'insumos' | 'movimentos'>, grupo: GrupoInsumo, mes: string) =>
   arred(soma(base.insumos.filter((i) => i.grupo === grupo), (i) => resumoMes(i, base.movimentos, mes).gastoUtilizado));
 
-export function abaixoDoMinimo(base: Pick<BaseFenix, 'insumos' | 'movimentos'>) {
+export function abaixoDoMinimo(base: Pick<BasePardal, 'insumos' | 'movimentos'>) {
   return base.insumos.map((i) => ({ i, s: saldo(i.id, base.movimentos) })).filter(({ i, s }) => situacaoEstoque(i, s) !== 'ok');
 }

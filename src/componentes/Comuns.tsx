@@ -111,9 +111,9 @@ export function Segmentado<T extends string>({ valor, setValor, opcoes }: { valo
  * Salvar e Descartar ficam sempre visíveis, desabilitados até clicar no lápis (padrão dos sistemas).
  * Registro novo já abre em edição; Descartar fecha.
  */
-export function Registro({ titulo, novo, edita, editando, setEditando, salvar, descartar, fechar, imprimir, cabecalho, erro, children, acoesExtra }: {
+export function Registro({ titulo, novo, edita, editando, setEditando, salvar, descartar, fechar, imprimir, pdf, cabecalho, erro, children, acoesExtra }: {
   titulo: ReactNode; novo?: boolean; edita: boolean; editando: boolean; setEditando: (v: boolean) => void;
-  salvar: () => void; descartar: () => void; fechar: () => void; imprimir?: () => void;
+  salvar: () => void; descartar: () => void; fechar: () => void; imprimir?: () => void; pdf?: () => void;
   cabecalho?: ReactNode; erro?: string; children: ReactNode; acoesExtra?: ReactNode;
 }) {
   return (
@@ -123,6 +123,7 @@ export function Registro({ titulo, novo, edita, editando, setEditando, salvar, d
         <div className="reg-acoes">
           {acoesExtra}
           {imprimir && <BotaoIcone icone="imprimir" titulo="Imprimir documento" onClick={imprimir} disabled={editando} />}
+          {pdf && <BotaoIcone icone="pdf" titulo="Gerar PDF do documento" onClick={pdf} disabled={editando} />}
           {!novo && <BotaoIcone icone="editar" titulo={edita ? 'Editar' : 'Seu perfil só consulta esta página'} onClick={() => setEditando(true)} disabled={!edita || editando} />}
           <BotaoIcone icone="salvar" titulo="Salvar" pri onClick={salvar} disabled={!editando} />
           <BotaoIcone icone="descartar" titulo={novo ? 'Descartar e fechar' : 'Descartar alterações'} onClick={descartar} disabled={!editando} />
@@ -165,9 +166,4 @@ export function useRascunho<T>(inicial: T, novo: boolean) {
 /** Aviso de mock, discreto. */
 export function SeloMock() {
   return <span className="selo-mock" title="Mock de apresentação: dados fictícios, nada é salvo">dados fictícios</span>;
-}
-
-/** Linha "de onde veio da planilha" — ajuda a apresentação a mostrar o antes/depois. */
-export function OrigemPlanilha({ aba }: { aba: string }) {
-  return <span className="origem" title="Aba da planilha que esta tela substitui"><Icone n="arquivo" /> planilha: {aba}</span>;
 }

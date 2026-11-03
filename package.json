@@ -1,8 +1,8 @@
 {
-  "name": "io-fenix-mock",
+  "name": "pardal-mock",
   "private": true,
   "version": "0.1.0",
-  "description": "IO Tecnologia · Fênix — mock funcional do sistema de gestão da fundição (dados fictícios, roda só no navegador)",
+  "description": "Pardal · Sistema de Gerenciamento Industrial — mock funcional (dados fictícios, roda só no navegador). Desenvolvido por IO Tecnologia.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "html2pdf.js": "0.10.2",
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-router-dom": "6.28.0"

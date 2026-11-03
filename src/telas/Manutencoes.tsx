@@ -1,10 +1,12 @@
 // Manutenção — substitui a aba "MANUTENÇÃO" (compra de equipamento e combustível).
+import { nomeMesLongo } from '../regras/periodo';
 import { useState } from 'react';
 import type { Manutencao } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, Campo, CampoNum, Contador, OrigemPlanilha, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, Campo, CampoNum, Contador, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
 import { BarrasH } from '../componentes/Graficos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { mesDe, noMes } from '../regras/periodo';
 import { br, brCurto, hoje } from '../util/datas';
@@ -27,8 +29,12 @@ export function Manutencoes() {
   const sel = abrir === 'novo' ? null : base.manutencoes.find((m) => m.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Manutenção e Combustível" sub={<OrigemPlanilha aba="MANUTENÇÃO" />}>
+      <TituloPagina titulo="Manutenção e Combustível" sub="Manutenção de equipamentos, compras e combustível">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Manutenção e Combustível" filtro={`${nomeMesLongo(mes)} · ${f === 'todas' ? 'todos os tipos' : TIPOS[f]}`}
+          colunas={[{ t: 'Entrada' }, { t: 'Equipamento' }, { t: 'Tipo' }, { t: 'Motivo' }, { t: 'Previsto' }, { t: 'Retorno' }, { t: 'Fornecedor' }, { t: 'Valor', dir: true }]}
+          linhas={vis.map((m) => [br(m.data), m.equipamento, TIPOS[m.tipo], m.motivo, m.dataPrevista ? br(m.dataPrevista) : '', m.dataRetorno ? br(m.dataRetorno) : m.tipo === 'manutencao' ? 'aguardando' : '', m.fornecedor, moeda(m.valor)])}
+          total={['Total', `${vis.length} lançamentos`, '', '', '', '', '', moeda(soma(vis, (m) => m.valor))]} />
         <BotaoIcone icone="mais" titulo={edita ? 'Lançar manutenção / compra' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">

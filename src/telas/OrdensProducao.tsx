@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import type { OrdemProducao, RefugoOP } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, OrigemPlanilha, Registro, Segmentado, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, Registro, Segmentado, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
-import { Imprimir } from '../componentes/Folha';
+import { Saida, type ModoSaida } from '../componentes/Folha';
 import { DocOP } from '../componentes/Documentos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { STATUS_OP, pesosOP, progressoOP } from '../regras/producao';
 import { mesDe, proximoNumero } from '../regras/periodo';
@@ -38,7 +39,10 @@ export function OrdensProducao() {
 
   return (
     <>
-      <TituloPagina titulo="Ordens de Produção" sub={<OrigemPlanilha aba="GERAÇÃO DE O.P + abas OP (1…200)" />}>
+      <TituloPagina titulo="Ordens de Produção" sub="Andamento das ordens, prazos e refugo">
+        <BotoesRelatorio titulo="Ordens de Produção" filtro={`${{ abertas: 'Em aberto', atrasadas: 'Atrasadas', concluidas: 'Concluídas', todas: 'Todas' }[f]}${t ? ` · busca "${t}"` : ''}`}
+          colunas={[{ t: 'O.P' }, { t: 'Entrada' }, { t: 'Cliente' }, { t: 'Desenho' }, { t: 'Liga' }, { t: 'Qtde', dir: true }, { t: 'Boas', dir: true }, { t: 'Entrega' }, { t: 'Situação' }]}
+          linhas={vis.map(({ o, p }) => [o.numero, br(o.data), cli(o.clienteId), o.desenho, liga(o.ligaId), String(o.quantidade), String(p.boas), br(o.dataEfetiva ?? o.dataPrevista), STATUS_OP[p.status].nome])} />
         <BotaoIcone icone="mais" titulo={edita ? 'Nova O.P' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">
@@ -90,7 +94,7 @@ function RegistroOP({ op, fechar }: { op?: OrdemProducao; fechar: () => void }) 
     quantidade: 0, pesoLiquidoKg: 0, pesoBrutoKg: 0, dataPrevista: somaDias(hj, 21), refugos: [],
   };
   const { r, setR, mudar, editando, setEditando, erro, setErro, descartar } = useRascunho(inicial, novo);
-  const [imprimir, setImprimir] = useState(false);
+  const [saida, setSaida] = useState<ModoSaida | null>(null);
   const p = pesosOP(r), pr = progressoOP(r, base, hj);
   const corridas = base.fichas.filter((f) => f.pecas.some((x) => x.opId === r.id));
   const orc = base.orcamentos.find((o) => o.id === r.orcamentoId);
@@ -109,7 +113,7 @@ function RegistroOP({ op, fechar }: { op?: OrdemProducao; fechar: () => void }) 
   return (
     <Registro
       titulo={novo ? 'Nova ordem de produção' : <>O.P <span className="mono">{r.numero}</span></>} novo={novo} edita={edita} editando={editando} setEditando={setEditando}
-      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setImprimir(true)}
+      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setSaida('imprimir')} pdf={novo ? undefined : () => setSaida('pdf')}
       cabecalho={!novo && <><Tag cls={STATUS_OP[pr.status].cls}>{STATUS_OP[pr.status].nome}</Tag>{orc && <span className="mut peq">do orçamento {orc.numero}</span>}</>}
       acoesExtra={!novo && !r.dataEfetiva && pr.faltam === 0 && <BotaoIcone icone="check" titulo="Concluir O.P (todas as peças boas fundidas)" cls="verde" disabled={!edita || editando} onClick={concluir} />}
     >
@@ -155,7 +159,7 @@ function RegistroOP({ op, fechar }: { op?: OrdemProducao; fechar: () => void }) 
         </Bloco>
       </div>
       {!novo && <p className="nota">Peças fundidas: {n0(pr.fundidas)} de {n0(r.quantidade)} · as peças entram pela Ficha do Forno (apontamento da corrida).</p>}
-      {imprimir && <Imprimir aoTerminar={() => setImprimir(false)}><DocOP op={r} base={base} /></Imprimir>}
+      {saida && <Saida modo={saida} nome={`O.P ${r.numero}`} aoTerminar={() => setSaida(null)}><DocOP op={r} base={base} /></Saida>}
     </Registro>
   );
 }

@@ -32,8 +32,8 @@ export function Abertura({ nome, perfil, dadosProntos, rapida, fim }: { nome: st
   return (
     <div className="abertura" role="status" aria-live="polite">
       <div className="abertura-logo"><Logo tam={96} /><span className="onda" /><span className="onda o2" /></div>
-      <div className="abertura-nome">IO TECNOLOGIA</div>
-      <div className="abertura-sub">Fênix · Gestão da Fundição</div>
+      <div className="abertura-nome">PARDAL</div>
+      <div className="abertura-sub">Sistema de Gerenciamento Industrial</div>
       <div className="abertura-ola">{saud}, {nome}!</div>
       <div className="abertura-barra"><span style={{ width: `${rapida ? (dadosProntos ? 100 : 60) : Math.min(100, (i / passos.length) * 100)}%` }} /></div>
       <div className="abertura-msg">{msg}</div>

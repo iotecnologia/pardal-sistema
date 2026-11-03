@@ -2,7 +2,7 @@
 //   RNC: peso total perdido = peças perdidas × peso bruto unitário   [I = G × H]
 //   CQ:  a química encontrada vem da ficha do forno da corrida (antes era digitada de novo no certificado)
 //        e é conferida contra a norma da liga; a mecânica é conferida contra a especificação da liga.
-import type { BaseFenix, Certificado, Mecanica, Rnc } from '../tipos/modelos';
+import type { BasePardal, Certificado, Mecanica, Rnc } from '../tipos/modelos';
 import { arred } from '../util/formato';
 import { conferirQuimica, dentro } from './forno';
 
@@ -17,7 +17,7 @@ export const MECANICA: { chave: keyof Mecanica; nome: string; unidade: string }[
   { chave: 'alongamento', nome: 'Alongamento', unidade: '%' },
 ];
 
-export function conferirCertificado(c: Certificado, base: Pick<BaseFenix, 'fichas' | 'ligas'>) {
+export function conferirCertificado(c: Certificado, base: Pick<BasePardal, 'fichas' | 'ligas'>) {
   const ficha = base.fichas.find((f) => f.id === c.fichaId);
   const liga = base.ligas.find((l) => l.id === c.ligaId);
   if (!liga) return { ficha, liga, quimica: [], mecanica: [], ok: false };

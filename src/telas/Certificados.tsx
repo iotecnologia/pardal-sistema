@@ -1,13 +1,15 @@
 // Certificados de Qualidade — substitui "GERAÇÃO DE CERTIFICADO" (1 e 2) + as 200 abas "CQ (n)".
 // Novo: escolhendo a nota fiscal e a corrida, a química vem da ficha do forno (não é redigitada) e é conferida
 // contra a norma; as propriedades mecânicas são conferidas contra a liga.
+import { nomeMesLongo } from '../regras/periodo';
 import { useState } from 'react';
 import type { Certificado, Mecanica } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, OrigemPlanilha, Registro, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, Registro, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
-import { Imprimir } from '../componentes/Folha';
+import { Saida, type ModoSaida } from '../componentes/Folha';
 import { DocCertificado } from '../componentes/Documentos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { MECANICA, conferirCertificado } from '../regras/qualidade';
 import { textoFaixa } from '../regras/forno';
@@ -30,8 +32,11 @@ export function Certificados() {
   const sel = abrir === 'novo' ? null : base.certificados.find((c) => c.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Certificados de Qualidade" sub={<OrigemPlanilha aba="GERAÇÃO DE CERTIFICADO + abas CQ (1…200)" />}>
+      <TituloPagina titulo="Certificados de Qualidade" sub="Certificados emitidos a partir da corrida, conferidos contra a norma">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Certificados de Qualidade" filtro={`${nomeMesLongo(mes)}${t ? ` · busca "${t}"` : ''}`}
+          colunas={[{ t: 'Certificado' }, { t: 'Data' }, { t: 'Cliente' }, { t: 'Nota fiscal' }, { t: 'Corrida' }, { t: 'Material' }, { t: 'Resultado' }]}
+          linhas={vis.map(({ c, cf }) => [c.numero, br(c.data), cli(c.clienteId), c.notaFiscal, cf.ficha?.numero ?? '', `${cf.liga?.nome ?? ''} · ${cf.liga?.norma ?? ''}`, cf.ok ? 'conforme' : 'fora da norma'])} />
         <BotaoIcone icone="mais" titulo={edita ? 'Novo certificado' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">
@@ -67,7 +72,7 @@ function RegistroCq({ cq, fechar }: { cq?: Certificado; fechar: () => void }) {
   const nf0 = [...base.faturamento].reverse().find((n) => !base.certificados.some((c) => c.notaFiscal === n.notaFiscal)) ?? base.faturamento[base.faturamento.length - 1];
   const inicial: Certificado = cq ?? { id: acoes.novoId('cq'), numero: proximoNumero(base.certificados, hj), data: hj, clienteId: nf0.clienteId, notaFiscal: nf0.notaFiscal, fichaId: '', ligaId: nf0.ligaId, itens: [], mecanica: {}, metalografia: '' };
   const { r, setR, mudar, editando, setEditando, erro, setErro, descartar } = useRascunho(inicial, novo);
-  const [imprimir, setImprimir] = useState(false);
+  const [saida, setSaida] = useState<ModoSaida | null>(null);
   const ed = !editando;
   const cf = conferirCertificado(r, base);
   const notas = [...base.faturamento].reverse().slice(0, 60);
@@ -92,7 +97,7 @@ function RegistroCq({ cq, fechar }: { cq?: Certificado; fechar: () => void }) {
   const tt = r.tratamento;
   return (
     <Registro titulo={novo ? 'Novo certificado de qualidade' : <>Certificado <span className="mono">{r.numero}</span></>} novo={novo} edita={edita} editando={editando} setEditando={setEditando}
-      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setImprimir(true)}
+      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setSaida('imprimir')} pdf={novo ? undefined : () => setSaida('pdf')}
       cabecalho={r.fichaId && (cf.ok ? <Tag cls="t-ok">material conforme</Tag> : <Tag cls="t-no">resultado fora da especificação</Tag>)}>
       <div className="form-grade">
         <Campo rot="Nº do certificado"><input value={r.numero} disabled /></Campo>
@@ -134,7 +139,7 @@ function RegistroCq({ cq, fechar }: { cq?: Certificado; fechar: () => void }) {
           </div>
         </Bloco>
       </div>
-      {imprimir && <Imprimir aoTerminar={() => setImprimir(false)}><DocCertificado c={r} base={base} /></Imprimir>}
+      {saida && <Saida modo={saida} nome={`Certificado ${r.numero}`} aoTerminar={() => setSaida(null)}><DocCertificado c={r} base={base} /></Saida>}
     </Registro>
   );
 }

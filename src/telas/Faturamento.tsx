@@ -1,15 +1,17 @@
 // Faturamento — substitui a aba "FATURAMENTO" (data, kg faturado, preço/kg, liga, nota fiscal, cliente).
+import { nomeMesLongo } from '../regras/periodo';
 import { useState } from 'react';
 import type { NotaFaturada } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, OrigemPlanilha, Registro, SeletorMes, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, Registro, SeletorMes, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
 import { BarrasH, Proporcao } from '../componentes/Graficos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { totalFaturado } from '../regras/custo';
 import { mesDe, noMes } from '../regras/periodo';
-import { brCurto, hoje } from '../util/datas';
-import { kg, moeda, rkg, semAcento, soma } from '../util/formato';
+import { br, brCurto, hoje } from '../util/datas';
+import { kg, moeda, n1, rkg, semAcento, soma } from '../util/formato';
 
 export function Faturamento() {
   const { base } = useDados();
@@ -29,8 +31,12 @@ export function Faturamento() {
   const sel = abrir === 'novo' ? null : base.faturamento.find((n) => n.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Faturamento" sub={<OrigemPlanilha aba="FATURAMENTO" />}>
+      <TituloPagina titulo="Faturamento" sub="Notas faturadas por cliente e liga">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Faturamento" filtro={`${nomeMesLongo(mes)}${t ? ` · busca "${t}"` : ''}`}
+          colunas={[{ t: 'Data' }, { t: 'Nota fiscal' }, { t: 'Cliente' }, { t: 'Liga' }, { t: 'Peso (kg)', dir: true }, { t: 'Preço/kg', dir: true }, { t: 'Total', dir: true }]}
+          linhas={vis.map((n) => [br(n.data), n.notaFiscal, cli(n.clienteId), liga(n.ligaId), n1(n.quantidadeKg), moeda(n.precoKg), moeda(n.quantidadeKg * n.precoKg)])}
+          total={['Total', `${vis.length} notas`, '', '', n1(soma(vis, (n) => n.quantidadeKg)), '', moeda(soma(vis, (n) => n.quantidadeKg * n.precoKg))]} />
         <BotaoIcone icone="mais" titulo={edita ? 'Lançar nota' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">

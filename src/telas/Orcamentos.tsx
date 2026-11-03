@@ -1,13 +1,14 @@
 // Orçamentos — substitui "GERAÇÃO DE ORÇAMENTO" + as 200 abas "ORÇAMENTO (n)".
-// A margem usa o custo por kg fabricado do último mês fechado (vem do Custo Mensal, como na planilha).
+// A margem usa o custo por kg fabricado do último mês fechado (vem do Custo Mensal).
 // Novo: digitar a margem desejada e o sistema achar o preço; aprovado → gera as O.P de cada item.
 import { useState } from 'react';
 import type { ItemOrcamento, Orcamento } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, OrigemPlanilha, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, BuscaLista, Campo, CampoNum, Contador, Registro, Segmentado, SeletorMes, Tag, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
-import { Imprimir } from '../componentes/Folha';
+import { Saida, type ModoSaida } from '../componentes/Folha';
 import { DocOrcamento } from '../componentes/Documentos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { STATUS_ORC, margemKg, precoParaMargem, totaisOrcamento } from '../regras/orcamento';
 import { custoMes } from '../regras/custo';
@@ -36,8 +37,12 @@ export function Orcamentos() {
   const sel = abrir === 'novo' ? null : base.orcamentos.find((o) => o.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Orçamentos" sub={<OrigemPlanilha aba="GERAÇÃO DE ORÇAMENTO + abas ORÇAMENTO (1…200)" />}>
+      <TituloPagina titulo="Orçamentos" sub="Orçamentos com margem calculada pelo custo real do kg">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Orçamentos" filtro={`${nomeMesLongo(mes)} · ${f === 'todos' ? 'todos' : STATUS_ORC[f].nome}${t ? ` · busca "${t}"` : ''}`}
+          colunas={[{ t: 'Orçamento' }, { t: 'Data' }, { t: 'Cliente' }, { t: 'Liga' }, { t: 'Peso (kg)', dir: true }, { t: 'Preço/kg', dir: true }, { t: 'Valor', dir: true }, { t: 'Margem', dir: true }, { t: 'Situação' }]}
+          linhas={vis.map(({ o, tt }) => [o.numero, br(o.data), cli(o.clienteId), liga(o.ligaId), n1(tt.pesoTotal), moeda(o.precoKg), moeda(tt.valor), pct(tt.margem), STATUS_ORC[o.status].nome])}
+          total={['Total', `${vis.length} orçamentos`, '', '', n1(soma(vis, (x) => x.tt.pesoTotal)), '', moeda(soma(vis, (x) => x.tt.valor)), '', '']} />
         <BotaoIcone icone="mais" titulo={edita ? 'Novo orçamento' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">
@@ -87,7 +92,7 @@ function RegistroOrc({ orc, fechar }: { orc?: Orcamento; fechar: () => void }) {
   };
   const { r, setR, mudar, editando, setEditando, erro, setErro, descartar } = useRascunho(inicial, novo);
   const [alvo, setAlvo] = useState<number | undefined>(30);
-  const [imprimir, setImprimir] = useState(false);
+  const [saida, setSaida] = useState<ModoSaida | null>(null);
   const ed = !editando;
   const tt = totaisOrcamento(r), m = margemKg(r);
   const opsGeradas = base.ops.filter((o) => o.orcamentoId === r.id);
@@ -112,7 +117,7 @@ function RegistroOrc({ orc, fechar }: { orc?: Orcamento; fechar: () => void }) {
   };
   return (
     <Registro titulo={novo ? 'Novo orçamento' : <>Orçamento <span className="mono">{r.numero}</span></>} novo={novo} edita={edita} editando={editando} setEditando={setEditando}
-      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setImprimir(true)}
+      salvar={salvar} descartar={novo ? fechar : descartar} fechar={fechar} erro={erro} imprimir={novo ? undefined : () => setSaida('imprimir')} pdf={novo ? undefined : () => setSaida('pdf')}
       cabecalho={!novo && <><Tag cls={STATUS_ORC[r.status].cls}>{STATUS_ORC[r.status].nome}</Tag>{vencido && <Tag cls="t-no">validade vencida</Tag>}{opsGeradas.length > 0 && <span className="mut peq">O.P {opsGeradas.map((o) => o.numero).join(', ')}</span>}</>}
       acoesExtra={!novo && r.status === 'aprovado' && opsGeradas.length === 0 && <BotaoIcone icone="lista" titulo="Gerar as O.P deste orçamento (uma por item)" cls="verde" disabled={!editaOP || editando} onClick={gerarOPs} />}>
       <div className="orc-grade">
@@ -174,7 +179,7 @@ function RegistroOrc({ orc, fechar }: { orc?: Orcamento; fechar: () => void }) {
           {!novo && r.status === 'aberto' && <p className="nota">Válido até {br(somaDias(r.data, r.validadeDias))}.</p>}
         </aside>
       </div>
-      {imprimir && <Imprimir aoTerminar={() => setImprimir(false)}><DocOrcamento o={r} base={base} /></Imprimir>}
+      {saida && <Saida modo={saida} nome={`Orçamento ${r.numero}`} aoTerminar={() => setSaida(null)}><DocOrcamento o={r} base={base} /></Saida>}
     </Registro>
   );
 }

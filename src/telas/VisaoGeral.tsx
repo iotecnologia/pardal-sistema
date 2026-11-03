@@ -1,4 +1,4 @@
-// Visão Geral — substitui o ÍNDICE da planilha. Cada perfil vê os números e as pendências do seu setor.
+// Visão Geral — página inicial. Cada perfil vê os números e as pendências do seu setor.
 import { Link } from 'react-router-dom';
 import { useDados } from '../componentes/Dados';
 import { Bloco, Contador, Tag, TituloPagina, Vazio } from '../componentes/Comuns';

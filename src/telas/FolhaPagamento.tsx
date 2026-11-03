@@ -1,12 +1,13 @@
 // Folha de Pagamento — substitui a aba "FOLHA PAGAMENTO - PRÓ-LABORE".
-// Total do mês = pagamento + (hora extra + encargos + outros), como na planilha [G4 = H4 + I4].
+// Total do mês = pagamento + (hora extra + encargos + outros).
 // Novo: cadastro de colaboradores; o mês novo pode ser copiado do anterior em um clique.
 import { useState } from 'react';
 import type { Colaborador, LancamentoFolha } from '../tipos/modelos';
 import { useDados } from '../componentes/Dados';
-import { Bloco, BotaoIcone, Campo, CampoNum, Contador, OrigemPlanilha, Registro, SeletorMes, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, Campo, CampoNum, Contador, Registro, SeletorMes, TituloPagina, Vazio, useEdita, useRascunho } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
 import { Proporcao } from '../componentes/Graficos';
+import { BotoesRelatorio } from '../componentes/Relatorio';
 import { useAbrir } from '../componentes/useAbrir';
 import { totalFolha } from '../regras/custo';
 import { mesDe, nomeMesLongo, somaMes } from '../regras/periodo';
@@ -28,8 +29,12 @@ export function FolhaPagamento() {
   const sel = abrir === 'novo' ? null : base.folha.find((f) => f.id === abrir);
   return (
     <>
-      <TituloPagina titulo="Folha de Pagamento" sub={<OrigemPlanilha aba="FOLHA PAGAMENTO - PRÓ-LABORE" />}>
+      <TituloPagina titulo="Folha de Pagamento" sub="Pagamento, hora extra e encargos por colaborador">
         <SeletorMes mes={mes} setMes={setMes} atual={mesDe(hj)} />
+        <BotoesRelatorio titulo="Folha de Pagamento" filtro={nomeMesLongo(mes)}
+          colunas={[{ t: 'Colaborador' }, { t: 'Cargo' }, { t: 'Setor' }, { t: 'Pagamento', dir: true }, { t: 'Hora extra', dir: true }, { t: 'Encargos', dir: true }, { t: 'Outros', dir: true }, { t: 'Total', dir: true }]}
+          linhas={doMes.map(({ f, c }) => [c.nome, c.cargo, c.setor, moeda(f.valor), moeda(f.horaExtra), moeda(f.encargos), moeda(f.outros), moeda(f.valor + f.horaExtra + f.encargos + f.outros)])}
+          total={['Total', `${doMes.length} colaboradores`, '', moeda(tot.pagamento), moeda(soma(doMes, (x) => x.f.horaExtra)), moeda(soma(doMes, (x) => x.f.encargos)), moeda(soma(doMes, (x) => x.f.outros)), moeda(tot.total)]} />
         <BotaoIcone icone="mais" titulo={edita ? 'Novo colaborador' : 'Seu perfil só consulta'} pri disabled={!edita} onClick={() => setAbrir('novo')} />
       </TituloPagina>
       <div className="contadores c4">

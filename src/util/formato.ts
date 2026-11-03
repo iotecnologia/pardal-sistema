@@ -61,6 +61,6 @@ export const soma = <T,>(l: readonly T[], f: (x: T) => number) => l.reduce((acc,
 
 /** localStorage protegido: só para conveniência (tema). Nunca para dado do sistema. */
 export const local = {
-  ler<T>(k: string, p: T): T { try { const v = localStorage.getItem('iofenix:' + k); return v ? (JSON.parse(v) as T) : p; } catch { return p; } },
-  gravar(k: string, v: unknown) { try { localStorage.setItem('iofenix:' + k, JSON.stringify(v)); } catch { /* sem armazenamento */ } },
+  ler<T>(k: string, p: T): T { try { const v = localStorage.getItem('pardal:' + k); return v ? (JSON.parse(v) as T) : p; } catch { return p; } },
+  gravar(k: string, v: unknown) { try { localStorage.setItem('pardal:' + k, JSON.stringify(v)); } catch { /* sem armazenamento */ } },
 };

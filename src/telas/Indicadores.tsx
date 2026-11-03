@@ -1,6 +1,7 @@
-// Indicadores (BI) — novo. A planilha era um arquivo por mês; com o histórico contínuo dá para ver a tendência.
+// Indicadores (BI) — tendência dos últimos 6 meses fechados. O botão TV abre o painel da diretoria em rotação automática.
+import { useNavigate } from 'react-router-dom';
 import { useDados } from '../componentes/Dados';
-import { Bloco, Contador, TituloPagina } from '../componentes/Comuns';
+import { Bloco, BotaoIcone, Contador, TituloPagina } from '../componentes/Comuns';
 import { Icone } from '../componentes/Icone';
 import { Barras, BarrasAgrupadas, BarrasH } from '../componentes/Graficos';
 import { custoMes, totalFaturado } from '../regras/custo';
@@ -12,6 +13,7 @@ import { moeda, n0, n1, pct, rkg, soma } from '../util/formato';
 
 export function Indicadores() {
   const { base } = useDados();
+  const navegar = useNavigate();
   const hj = hoje();
   const meses = ultimosMeses(somaMes(mesDe(hj), -1), 6); // 6 meses fechados
   const cm = meses.map((m) => ({ m, c: custoMes(base, m), f: totalFaturado(base, m) }));
@@ -32,7 +34,9 @@ export function Indicadores() {
   const kfmt = (v: number) => (v >= 1000 ? `${n0(v / 1000)} mil` : n0(v));
   return (
     <>
-      <TituloPagina titulo="Indicadores" sub={`Últimos 6 meses fechados · ${mesCurto(meses[0])} a ${mesCurto(meses[meses.length - 1])}`} />
+      <TituloPagina titulo="Indicadores" sub={`Últimos 6 meses fechados · ${mesCurto(meses[0])} a ${mesCurto(meses[meses.length - 1])}`}>
+        <BotaoIcone icone="tv" titulo="Abrir o BI na TV (rotação automática)" pri onClick={() => navegar('/tv')} />
+      </TituloPagina>
       <div className="contadores c6">
         <Contador icone="carteira" valor={<>{rkg(u.c.custoKg)}{varr(u.c.custoKg, a.c.custoKg, true)}</>} rot={`custo/kg · ${mesCurto(u.m)}`} />
         <Contador icone="peca" valor={<>{n1(u.c.metalLimpo / 1000)} t{varr(u.c.metalLimpo, a.c.metalLimpo)}</>} rot="metal limpo" />
