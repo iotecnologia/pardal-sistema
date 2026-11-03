@@ -24,7 +24,7 @@ export function Login() {
     <div className="login">
       <div className="login-marca">
         <div className="deco" />
-        <div className="logo-bloco"><LogoCompleto largura={220} /></div>
+        <LogoCompleto tam={76} />
         <h1>A fundição inteira em um só lugar, <em>do orçamento ao certificado.</em></h1>
         <p>Orçamento com margem pelo custo real do kg, ordem de produção, ficha do forno com baixa automática dos insumos, refugo, certificado de qualidade e o custo mensal fechando sozinho.</p>
         <div className="modulos-lista">

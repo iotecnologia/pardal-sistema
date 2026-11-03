@@ -31,7 +31,7 @@ export function Abertura({ nome, perfil, dadosProntos, rapida, fim }: { nome: st
   const msg = i < passos.length ? passos[i] : dadosProntos ? 'Tudo pronto!' : 'Finalizando…';
   return (
     <div className="abertura" role="status" aria-live="polite">
-      <div className="abertura-logo"><Logo tam={96} /><span className="onda" /><span className="onda o2" /></div>
+      <div className="abertura-logo"><Logo tam={124} /><span className="onda" /><span className="onda o2" /></div>
       <div className="abertura-nome">PARDAL</div>
       <div className="abertura-sub">Sistema de Gerenciamento Industrial</div>
       <div className="abertura-ola">{saud}, {nome}!</div>
