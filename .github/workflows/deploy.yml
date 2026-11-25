@@ -1,5 +1,8 @@
 name: Publicar no GitHub Pages
 
+# SISTEMA FORA DO AR: publica só a página de aviso (pasta "aviso").
+# Para reativar o sistema, troque o job "build" pelo bloco comentado no fim deste arquivo.
+
 on:
   push:
     branches: [main]
@@ -19,17 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm test
-      - run: npm run build
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: aviso
 
   deploy:
     needs: build
@@ -40,3 +36,23 @@ jobs:
     steps:
       - id: deployment
         uses: actions/deploy-pages@v4
+
+# ---------------------------------------------------------------
+# PARA REATIVAR O SISTEMA: use este job "build" no lugar do de cima
+#
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - uses: actions/checkout@v4
+#      - uses: actions/setup-node@v4
+#        with:
+#          node-version: 22
+#          cache: npm
+#      - run: npm ci
+#      - run: npm test
+#      - run: npm run build
+#      - uses: actions/configure-pages@v5
+#      - uses: actions/upload-pages-artifact@v3
+#        with:
+#          path: dist
+# ---------------------------------------------------------------
